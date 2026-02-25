@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Block, ImagePayload } from "../../types/blocks";
 
 interface ImageBlockProps {
@@ -19,6 +19,15 @@ export function ImageBlock({ block }: ImageBlockProps) {
   const payload = block.payload as unknown as ImagePayload;
   const aspectRatio = parseAspectRatio(payload.aspect_ratio ?? "16:9");
   const [loaded, setLoaded] = useState(false);
+  const lastUrl = useRef<string | null>(null);
+
+  // Reset loaded state only when URL actually changes to a *different* value
+  useEffect(() => {
+    if (payload.url && payload.url !== lastUrl.current) {
+      lastUrl.current = payload.url;
+      setLoaded(false);
+    }
+  }, [payload.url]);
 
   return (
     <figure className="my-4">

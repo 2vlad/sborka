@@ -171,11 +171,17 @@ export const useSessionStore = create<SessionStore>((set) => ({
               [event.lesson_id]: updateBlockInLesson(
                 blocks,
                 event.block_id,
-                (block) => ({
-                  ...block,
-                  status: "ready",
-                  payload: event.payload,
-                }),
+                (block) => {
+                  const existingUrl = (block.payload as Record<string, unknown>)?.url;
+                  const newPayload = existingUrl
+                    ? { ...event.payload, url: existingUrl }
+                    : event.payload;
+                  return {
+                    ...block,
+                    status: "ready",
+                    payload: newPayload,
+                  };
+                },
               ),
             },
           };
