@@ -69,12 +69,6 @@ app.add_middleware(
 # API routes
 app.include_router(sessions_router)
 
-
-@app.get("/api/sentry-test")
-async def sentry_test():
-    """Temporary endpoint to verify Sentry integration."""
-    raise RuntimeError("Sentry test error — delete this endpoint after verification")
-
 # Serve generated images
 GENERATED_IMAGES_DIR = Path("generated_images")
 GENERATED_IMAGES_DIR.mkdir(exist_ok=True)
