@@ -128,3 +128,26 @@ def build_callout_prompt(heading: str, context: str, lesson_title: str) -> str:
 
 Верните ТОЛЬКО текст в формате Markdown, без обёртки в JSON.
 """
+
+
+def build_image_prompt_prompt(heading: str, context: str, lesson_title: str) -> str:
+    """Build a user prompt for generating a content-aware image prompt."""
+    return f"""\
+Урок: «{lesson_title}»
+Секция: «{heading}»
+
+Текст урока перед иллюстрацией:
+{context}
+
+На основе текста выше создайте промпт для генерации образовательной иллюстрации \
+на английском языке.
+
+Требования:
+- Промпт должен описывать конкретную концепцию или процесс из текста, а не абстрактную декорацию
+- Описание визуальное: что именно изображено, какие объекты, какое действие
+- Без текста на изображении (no text, no labels, no captions)
+- Одна сцена, не коллаж
+- 1-3 предложения
+
+Верните ТОЛЬКО текст промпта на английском, без кавычек, без пояснений.
+"""

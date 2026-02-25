@@ -9,6 +9,7 @@ from app.llm.client import llm_client
 from app.llm.prompts.filler import (
     FILLER_SYSTEM_PROMPT,
     build_callout_prompt,
+    build_image_prompt_prompt,
     build_markdown_prompt,
     build_practice_prompt,
     build_quiz_prompt,
@@ -95,7 +96,7 @@ async def fill_block(
             await _fill_callout(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type == "image":
-            await _fill_image(block, session_id, lesson_id)
+            await _fill_image(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type == "dialog":
             # Dialog blocks: keep existing payload or mark ready
@@ -357,12 +358,36 @@ async def _fill_callout(
     )
 
 
-async def _fill_image(block: Block, session_id: str, lesson_id: str) -> None:
-    """Reserve an image asset and start mock generation in the background."""
+async def _fill_image(
+    block: Block,
+    heading: str,
+    context: str,
+    lesson_title: str,
+    session_id: str,
+    lesson_id: str,
+    skill_level: int | None = None,
+) -> None:
+    """Reserve an image asset and generate a content-aware prompt if enough context."""
+    image_prompt = block.payload.get("image_prompt", "educational illustration")
+
+    if len(context.strip()) >= 50:
+        try:
+            user_prompt = build_image_prompt_prompt(heading, context, lesson_title)
+            image_prompt = await llm_client.generate(
+                system=FILLER_SYSTEM_PROMPT,
+                user=user_prompt,
+                max_tokens=256,
+            )
+            image_prompt = image_prompt.strip().strip('"').strip("'")
+            logger.info("Generated content-aware image prompt for block %s", block.id)
+        except Exception:
+            logger.warning("Failed to generate image prompt for block %s, using scaffold hint", block.id, exc_info=True)
+
+    block.payload["image_prompt"] = image_prompt
+
     asset_id = str(uuid.uuid4())
     aspect_ratio = block.payload.get("aspect_ratio", "16:9")
     caption = block.payload.get("caption", "")
-    image_prompt = block.payload.get("image_prompt", "educational illustration")
 
     event_bus.emit(
         session_id,
