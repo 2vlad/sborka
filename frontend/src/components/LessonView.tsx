@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useSession } from "../hooks/useSession";
 import type { PlanNode } from "../types/session";
 import { BlockRenderer } from "./blocks/BlockRenderer";
+import { BlockSkeleton } from "./blocks/BlockSkeleton";
+import type { BlockType } from "../types/blocks";
 
 function findLessonNode(
   nodes: PlanNode[],
@@ -27,7 +29,7 @@ export function LessonView() {
 
   if (!currentLessonId) {
     return (
-      <div className="py-20 text-center text-gray-400">
+      <div className="py-20 text-center text-text-placeholder">
         <p className="text-lg">Выберите урок в панели навигации</p>
       </div>
     );
@@ -36,23 +38,34 @@ export function LessonView() {
   if (currentBlocks.length === 0) {
     if (status === "done") {
       return (
-        <div className="py-20 text-center text-gray-400">
+        <div className="py-20 text-center text-text-placeholder">
           <p className="text-lg">Этот урок ещё не сгенерирован</p>
         </div>
       );
     }
+    const placeholderTypes: BlockType[] = [
+      "heading", "markdown", "markdown", "image", "markdown",
+    ];
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-4 h-8 w-8 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
-        <p className="text-gray-500">Загружаем содержимое урока...</p>
-      </div>
+      <article>
+        {lessonNode && (
+          <h1 className="mb-8 text-3xl font-bold text-text-heading">
+            {lessonNode.title}
+          </h1>
+        )}
+        <div className="space-y-6">
+          {placeholderTypes.map((type, i) => (
+            <BlockSkeleton key={i} blockType={type} />
+          ))}
+        </div>
+      </article>
     );
   }
 
   return (
     <article>
       {lessonNode && (
-        <h1 className="mb-8 text-3xl font-bold text-gray-900">
+        <h1 className="mb-8 text-3xl font-bold text-text-heading">
           {lessonNode.title}
         </h1>
       )}

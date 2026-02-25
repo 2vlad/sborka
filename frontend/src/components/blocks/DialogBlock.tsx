@@ -11,8 +11,8 @@ export function DialogBlock({ block }: DialogBlockProps) {
   if (messages.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-5">
-      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+    <div className="rounded-xl border border-border bg-surface-alt/50 p-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-placeholder">
         Диалог
       </div>
       <div className="space-y-3">
@@ -26,20 +26,20 @@ export function DialogBlock({ block }: DialogBlockProps) {
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                   isEven
-                    ? "rounded-bl-md bg-white shadow-sm"
-                    : "rounded-br-md bg-gray-900 text-white"
+                    ? "rounded-bl-md bg-surface shadow-sm"
+                    : "rounded-br-md bg-dialog-reply text-dialog-reply-text"
                 }`}
               >
                 <div
                   className={`mb-0.5 text-xs font-medium ${
-                    isEven ? "text-gray-400" : "text-gray-400"
+                    isEven ? "text-text-placeholder" : "text-text-placeholder"
                   }`}
                 >
                   {msg.role}
                 </div>
                 <p
                   className={`text-sm ${
-                    isEven ? "text-gray-700" : "text-white"
+                    isEven ? "text-text-body" : "text-dialog-reply-text"
                   }`}
                 >
                   {msg.text}

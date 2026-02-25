@@ -24,13 +24,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   if (!outline || outline.length === 0) {
     return (
-      <div className="p-4 text-sm text-gray-400">Структура загружается...</div>
+      <div className="p-4 text-sm text-text-placeholder">Структура загружается...</div>
     );
   }
 
   return (
     <nav className="p-4" aria-label="Навигация по программе">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-placeholder">
         Структура программы
       </h2>
       <ul className="space-y-0.5">
@@ -78,15 +78,15 @@ function SidebarNode({ node, level, currentLessonId, onSelect }: SidebarNodeProp
         onClick={handleClick}
         className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors ${
           isActive
-            ? "bg-gray-200 font-medium text-black"
-            : "text-gray-700 hover:bg-gray-100"
+            ? "bg-surface-inset font-medium text-text-primary"
+            : "text-text-body hover:bg-surface-raised"
         }`}
         style={{ paddingLeft: `${level * 16 + 8}px` }}
         aria-current={isActive ? "page" : undefined}
       >
         {hasChildren && (
           <svg
-            className={`h-3 w-3 flex-shrink-0 text-gray-400 transition-transform ${
+            className={`h-3 w-3 flex-shrink-0 text-text-placeholder transition-transform ${
               expanded ? "rotate-90" : ""
             }`}
             fill="none"

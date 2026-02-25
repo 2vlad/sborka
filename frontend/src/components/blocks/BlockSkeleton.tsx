@@ -20,17 +20,17 @@ export function BlockSkeleton({ blockType }: BlockSkeletonProps) {
 
   return (
     <div
-      className={`animate-pulse rounded-xl bg-gray-100 ${height}`}
+      className={`animate-pulse rounded-xl bg-surface-raised ${height}`}
       role="status"
       aria-label="Загрузка блока"
     >
       <div className="flex h-full flex-col justify-center gap-2 p-6">
-        <div className="h-3 w-3/4 rounded bg-gray-200" />
-        <div className="h-3 w-1/2 rounded bg-gray-200" />
+        <div className="h-3 w-3/4 rounded bg-surface-inset" />
+        <div className="h-3 w-1/2 rounded bg-surface-inset" />
         {blockType !== "heading" && (
           <>
-            <div className="h-3 w-5/6 rounded bg-gray-200" />
-            <div className="h-3 w-2/3 rounded bg-gray-200" />
+            <div className="h-3 w-5/6 rounded bg-surface-inset" />
+            <div className="h-3 w-2/3 rounded bg-surface-inset" />
           </>
         )}
       </div>

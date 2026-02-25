@@ -32,12 +32,12 @@ export function Breadcrumbs() {
 
   return (
     <nav aria-label="Путь к уроку" className="mb-6">
-      <ol className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
+      <ol className="flex flex-wrap items-center gap-1 text-sm text-text-muted">
         {breadcrumbs.map((node, i) => (
           <li key={node.id} className="flex items-center gap-1">
             {i > 0 && (
               <svg
-                className="h-3 w-3 text-gray-300"
+                className="h-3 w-3 text-border-strong"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -53,8 +53,8 @@ export function Breadcrumbs() {
             <span
               className={
                 i === breadcrumbs.length - 1
-                  ? "font-medium text-gray-900"
-                  : "text-gray-500"
+                  ? "font-medium text-text-heading"
+                  : "text-text-muted"
               }
             >
               {node.title}

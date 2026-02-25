@@ -12,11 +12,11 @@ export function HeadingBlock({ block }: HeadingBlockProps) {
 
   if (level === 3) {
     return (
-      <h3 className="text-xl font-semibold text-gray-900">{text}</h3>
+      <h3 className="text-xl font-semibold text-text-heading">{text}</h3>
     );
   }
 
   return (
-    <h2 className="text-2xl font-bold text-gray-900">{text}</h2>
+    <h2 className="text-2xl font-bold text-text-heading">{text}</h2>
   );
 }

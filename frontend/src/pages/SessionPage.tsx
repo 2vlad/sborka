@@ -58,14 +58,14 @@ export default function SessionPage() {
 
   if (!sessionId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <p className="text-gray-500">Сессия не найдена</p>
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <p className="text-text-muted">Сессия не найдена</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-surface">
       <StatusBar />
 
       <div className="flex min-h-0 flex-1">
@@ -73,7 +73,7 @@ export default function SessionPage() {
         {outline && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="fixed bottom-4 right-4 z-50 rounded-full bg-black p-3 text-white shadow-lg md:hidden"
+            className="fixed bottom-4 right-4 z-50 rounded-full bg-btn-primary p-3 text-btn-primary-text shadow-lg md:hidden"
             aria-label={sidebarOpen ? "Скрыть навигацию" : "Показать навигацию"}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -91,7 +91,7 @@ export default function SessionPage() {
           <aside
             className={`${
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            } fixed inset-y-0 left-0 z-40 w-72 transform overflow-y-auto border-r border-gray-100 bg-gray-50/50 pt-14 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:pt-0`}
+            } fixed inset-y-0 left-0 z-40 w-72 transform overflow-y-auto border-r border-border bg-surface-alt/50 pt-14 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:pt-0`}
           >
             <Sidebar onNavigate={() => setSidebarOpen(false)} />
           </aside>
@@ -111,14 +111,14 @@ export default function SessionPage() {
             <Breadcrumbs />
             {status === "classifying" && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
-                <p className="text-lg text-gray-500">Анализируем ваш запрос...</p>
+                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-surface-inset border-t-text-secondary" />
+                <p className="text-lg text-text-muted">Анализируем ваш запрос...</p>
               </div>
             )}
             {status === "scaffolding" && !outline && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
-                <p className="text-lg text-gray-500">Строим структуру программы...</p>
+                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-surface-inset border-t-text-secondary" />
+                <p className="text-lg text-text-muted">Строим структуру программы...</p>
               </div>
             )}
             {(status === "generating" || status === "done" || outline) && (

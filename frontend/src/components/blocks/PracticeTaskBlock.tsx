@@ -64,10 +64,10 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
   };
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 p-6">
+    <div className="rounded-xl border-2 border-dashed border-border-strong bg-surface-alt/50 p-6">
       <div className="mb-3 flex items-center gap-2">
         <svg
-          className="h-5 w-5 text-gray-600"
+          className="h-5 w-5 text-text-secondary"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -79,12 +79,12 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
             d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
           />
         </svg>
-        <span className="text-sm font-semibold uppercase tracking-wider text-gray-700">
+        <span className="text-sm font-semibold uppercase tracking-wider text-text-body">
           Практическое задание
         </span>
       </div>
 
-      <div className="prose prose-sm max-w-none prose-p:text-gray-700">
+      <div className="prose prose-sm max-w-none prose-p:text-text-body">
         <ReactMarkdown>{payload.description}</ReactMarkdown>
       </div>
 
@@ -98,12 +98,12 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
             }}
             rows={Math.max(6, code.split("\n").length + 2)}
             spellCheck={false}
-            className="w-full rounded-lg border border-gray-300 bg-white p-4 font-mono text-sm leading-relaxed text-gray-900 focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+            className="w-full rounded-lg border border-border-strong bg-surface p-4 font-mono text-sm leading-relaxed text-text-heading focus:border-text-primary focus:outline-none focus:ring-1 focus:ring-text-primary"
           />
 
           <button
             onClick={handleRun}
-            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-lg bg-btn-primary px-4 py-2 text-sm font-medium text-btn-primary-text hover:bg-btn-primary-hover"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -117,9 +117,9 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
               {testResults.map((r, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <span className={r.passed ? "text-green-600" : "text-red-600"}>
-                    {r.passed ? "✓" : "✗"}
+                    {r.passed ? "\u2713" : "\u2717"}
                   </span>
-                  <span className={r.passed ? "text-green-800" : "text-red-800"}>
+                  <span className={r.passed ? "text-green-800 dark:text-green-400" : "text-red-800 dark:text-red-400"}>
                     {r.label}
                     {r.error && (
                       <span className="ml-2 text-xs text-red-500">({r.error})</span>
@@ -136,7 +136,7 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
         <div className="mt-4">
           <button
             onClick={() => setShowCriteria(!showCriteria)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-black"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-text-body hover:text-text-primary"
           >
             <svg
               className={`h-4 w-4 transition-transform ${showCriteria ? "rotate-90" : ""}`}
@@ -158,12 +158,12 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
             <ul className="mt-3 space-y-2">
               {payload.criteria.map((criterion, i) => (
                 <li key={i}>
-                  <label className="flex items-start gap-3 text-sm text-gray-700">
+                  <label className="flex items-start gap-3 text-sm text-text-body">
                     <input
                       type="checkbox"
                       checked={checkedCriteria.has(i)}
                       onChange={() => toggleCriterion(i)}
-                      className="mt-0.5 h-4 w-4 rounded accent-black"
+                      className="mt-0.5 h-4 w-4 rounded accent-btn-primary"
                     />
                     <span>{criterion}</span>
                   </label>

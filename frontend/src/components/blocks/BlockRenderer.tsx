@@ -9,12 +9,20 @@ import { PracticeTaskBlock } from "./PracticeTaskBlock";
 import { QuizMultiBlock } from "./QuizMultiBlock";
 import { QuizSingleBlock } from "./QuizSingleBlock";
 
+function isPayloadEmpty(payload: Record<string, unknown>): boolean {
+  return Object.keys(payload).length === 0;
+}
+
 interface BlockRendererProps {
   block: Block;
 }
 
 export function BlockRenderer({ block }: BlockRendererProps) {
   if (block.status === "planned") {
+    return <BlockSkeleton blockType={block.type} />;
+  }
+
+  if (block.status === "generating" && isPayloadEmpty(block.payload)) {
     return <BlockSkeleton blockType={block.type} />;
   }
 
@@ -37,7 +45,7 @@ export function BlockRenderer({ block }: BlockRendererProps) {
       return <ImageBlock block={block} />;
     default:
       return (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+        <div className="rounded-lg border border-border bg-surface-alt p-4 text-sm text-text-muted">
           Неизвестный тип блока: {block.type}
         </div>
       );
