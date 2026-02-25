@@ -40,7 +40,7 @@ export function ImageBlock({ block }: ImageBlockProps) {
             {/* Placeholder shown until image loads */}
             {!loaded && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
+                <div className="h-8 w-8 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-600" />
               </div>
             )}
             <img

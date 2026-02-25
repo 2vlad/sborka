@@ -99,7 +99,7 @@ export default function LandingPage() {
             {isSubmitting ? (
               <span className="inline-flex items-center gap-2">
                 <svg
-                  className="h-5 w-5 animate-spin"
+                  className="h-5 w-5 animate-spin-ease"
                   viewBox="0 0 24 24"
                   fill="none"
                 >
