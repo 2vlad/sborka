@@ -11,9 +11,11 @@ export async function createSession(userRequest: string): Promise<string> {
   return data.session_id;
 }
 
-export async function triggerGenerate(sessionId: string): Promise<void> {
+export async function triggerGenerate(sessionId: string, skillLevel?: number): Promise<void> {
   const res = await fetch(`/api/sessions/${sessionId}/generate`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skill_level: skillLevel ?? null }),
   });
   if (!res.ok) {
     throw new Error(

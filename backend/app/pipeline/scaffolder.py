@@ -28,18 +28,22 @@ def _parse_blocks(raw_blocks: list[dict]) -> list[Block]:
     return blocks
 
 
-async def scaffold_lesson(lesson_title: str, lesson_context: str) -> list[Block]:
+async def scaffold_lesson(lesson_title: str, lesson_context: str, skill_level: int | None = None) -> list[Block]:
     """Generate the block scaffold for a lesson.
 
     Returns a list of Block objects with status='planned' and initial payloads
     (headings filled in, content blocks with placeholder descriptions).
     """
+    skill_hint = ""
+    if skill_level is not None:
+        skill_hint = f"\nУровень ученика: {skill_level}/100 (0 — начинающий, 100 — продвинутый). Адаптируйте сложность урока под этот уровень.\n"
+
     user_prompt = f"""\
 Создайте каркас урока на тему: «{lesson_title}»
 
 Дополнительный контекст:
 {lesson_context if lesson_context else "(отсутствует)"}
-
+{skill_hint}
 Верните массив блоков, следуя обязательной 12-секционной структуре урока.
 """
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Block, QuizSinglePayload } from "../../types/blocks";
+import { useSessionStore } from "../../store/sessionStore";
 
 interface QuizSingleBlockProps {
   block: Block;
@@ -9,6 +10,7 @@ export function QuizSingleBlock({ block }: QuizSingleBlockProps) {
   const payload = block.payload as unknown as QuizSinglePayload;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const recordAnswer = useSessionStore((s) => s.recordAnswer);
 
   if (!payload.question) return null;
 
@@ -81,7 +83,10 @@ export function QuizSingleBlock({ block }: QuizSingleBlockProps) {
 
       {!checked && (
         <button
-          onClick={() => setChecked(true)}
+          onClick={() => {
+            setChecked(true);
+            recordAnswer(selectedId === payload.correct_option_id);
+          }}
           disabled={!selectedId}
           className="mt-4 rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
         >

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Block, QuizMultiPayload } from "../../types/blocks";
+import { useSessionStore } from "../../store/sessionStore";
 
 interface QuizMultiBlockProps {
   block: Block;
@@ -9,6 +10,7 @@ export function QuizMultiBlock({ block }: QuizMultiBlockProps) {
   const payload = block.payload as unknown as QuizMultiPayload;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [checked, setChecked] = useState(false);
+  const recordAnswer = useSessionStore((s) => s.recordAnswer);
 
   if (!payload.question) return null;
 
@@ -103,7 +105,14 @@ export function QuizMultiBlock({ block }: QuizMultiBlockProps) {
 
       {!checked && (
         <button
-          onClick={() => setChecked(true)}
+          onClick={() => {
+            setChecked(true);
+            const correctSet = new Set(payload.correct_option_ids ?? []);
+            const allCorrect =
+              selectedIds.size === correctSet.size &&
+              [...selectedIds].every((id) => correctSet.has(id));
+            recordAnswer(allCorrect);
+          }}
           disabled={selectedIds.size === 0}
           className="mt-4 rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
         >

@@ -28,7 +28,8 @@ export default function SessionPage() {
   const handleSSEConnected = useCallback(() => {
     if (sessionId && !generationTriggered.current) {
       generationTriggered.current = true;
-      triggerGenerate(sessionId).catch(console.error);
+      const skillLevel = useSessionStore.getState().skillLevel;
+      triggerGenerate(sessionId, skillLevel).catch(console.error);
     }
   }, [sessionId]);
 

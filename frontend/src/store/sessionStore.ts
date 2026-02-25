@@ -18,12 +18,14 @@ interface SessionStore {
   errors: string[];
   /** Maps asset_id to { lessonId, blockId } for resolving asset_ready events */
   assetMap: Record<string, { lessonId: string; blockId: string }>;
+  skillLevel: number;
 
   // Actions
   handleEvent: (event: SSEEvent) => void;
   reset: () => void;
   setCurrentLesson: (lessonId: string) => void;
   setSessionId: (sessionId: string) => void;
+  recordAnswer: (correct: boolean) => void;
 }
 
 function updateNodeStatus(
@@ -62,6 +64,7 @@ const initialState = {
   lessons: {} as Record<string, Block[]>,
   errors: [] as string[],
   assetMap: {} as Record<string, { lessonId: string; blockId: string }>,
+  skillLevel: 50,
 };
 
 export const useSessionStore = create<SessionStore>((set) => ({
@@ -247,4 +250,9 @@ export const useSessionStore = create<SessionStore>((set) => ({
   setCurrentLesson: (lessonId: string) => set({ currentLessonId: lessonId }),
 
   setSessionId: (sessionId: string) => set({ sessionId }),
+
+  recordAnswer: (correct: boolean) =>
+    set((state) => ({
+      skillLevel: Math.max(0, Math.min(100, state.skillLevel + (correct ? 10 : -10))),
+    })),
 }));

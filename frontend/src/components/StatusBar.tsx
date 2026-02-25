@@ -1,4 +1,5 @@
 import { useSession } from "../hooks/useSession";
+import { useSessionStore } from "../store/sessionStore";
 
 const scaleLabels: Record<string, string> = {
   lesson: "Урок",
@@ -9,6 +10,7 @@ const scaleLabels: Record<string, string> = {
 
 export function StatusBar() {
   const { status, classification, errors } = useSession();
+  const skillLevel = useSessionStore((s) => s.skillLevel);
 
   return (
     <header className="flex items-center gap-4 border-b border-gray-200 bg-white px-6 py-3">
@@ -79,15 +81,35 @@ export function StatusBar() {
         </>
       )}
 
+      <SkillThermometer level={skillLevel} />
+
       {errors.length > 0 && (
-        <>
-          <div className="ml-auto" />
-          <span className="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-            {errors.length} {errors.length === 1 ? "ошибка" : "ошибок"}
-          </span>
-        </>
+        <span className="rounded-full border border-gray-300 bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+          {errors.length} {errors.length === 1 ? "ошибка" : "ошибок"}
+        </span>
       )}
     </header>
+  );
+}
+
+function SkillThermometer({ level }: { level: number }) {
+  // HSL hue: 0 (red) at level=0, 60 (yellow) at 50, 120 (green) at 100
+  const hue = Math.round((level / 100) * 120);
+  return (
+    <div className="ml-auto flex items-center gap-2" title={`Уровень: ${level}`}>
+      <div className="h-2 w-20 overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full transition-all duration-300"
+          style={{
+            width: `${level}%`,
+            backgroundColor: `hsl(${hue}, 80%, 45%)`,
+          }}
+        />
+      </div>
+      <span className="text-xs font-medium tabular-nums text-gray-600">
+        {level}
+      </span>
+    </div>
   );
 }
 

@@ -27,6 +27,17 @@ from app.sse.event_bus import event_bus
 logger = logging.getLogger(__name__)
 
 
+def _skill_context(skill_level: int | None) -> str:
+    """Return a skill-level hint to append to prompts."""
+    if skill_level is None:
+        return ""
+    return (
+        f"\n\nУровень ученика: {skill_level}/100 "
+        f"(0 — начинающий, 100 — продвинутый). "
+        f"Адаптируйте сложность, глубину и терминологию под этот уровень."
+    )
+
+
 def _build_context(blocks: list[Block], current_index: int) -> str:
     """Build context string from previously filled blocks."""
     parts: list[str] = []
@@ -53,6 +64,7 @@ async def fill_block(
     lesson_title: str,
     session_id: str,
     lesson_id: str,
+    skill_level: int | None = None,
 ) -> None:
     """Fill a single block with content, emitting SSE events along the way.
 
@@ -71,16 +83,16 @@ async def fill_block(
             await _fill_heading(block, session_id, lesson_id)
 
         elif block.type == "markdown":
-            await _fill_markdown(block, heading, context, lesson_title, session_id, lesson_id)
+            await _fill_markdown(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type in ("quiz_single", "quiz_multi"):
-            await _fill_quiz(block, heading, context, lesson_title, session_id, lesson_id)
+            await _fill_quiz(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type == "practice_task":
-            await _fill_practice(block, heading, context, lesson_title, session_id, lesson_id)
+            await _fill_practice(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type == "callout":
-            await _fill_callout(block, heading, context, lesson_title, session_id, lesson_id)
+            await _fill_callout(block, heading, context, lesson_title, session_id, lesson_id, skill_level)
 
         elif block.type == "image":
             await _fill_image(block, session_id, lesson_id)
@@ -137,6 +149,7 @@ async def _fill_markdown(
     lesson_title: str,
     session_id: str,
     lesson_id: str,
+    skill_level: int | None = None,
 ) -> None:
     """Fill a markdown block using streaming."""
     event_bus.emit(
@@ -148,7 +161,7 @@ async def _fill_markdown(
         ),
     )
 
-    user_prompt = build_markdown_prompt(heading, context, lesson_title)
+    user_prompt = build_markdown_prompt(heading, context, lesson_title) + _skill_context(skill_level)
     full_text = ""
 
     async for delta in llm_client.generate_stream(
@@ -187,6 +200,7 @@ async def _fill_quiz(
     lesson_title: str,
     session_id: str,
     lesson_id: str,
+    skill_level: int | None = None,
 ) -> None:
     """Fill a quiz block with a single LLM call."""
     event_bus.emit(
@@ -198,7 +212,7 @@ async def _fill_quiz(
         ),
     )
 
-    user_prompt = build_quiz_prompt(heading, context, lesson_title)
+    user_prompt = build_quiz_prompt(heading, context, lesson_title) + _skill_context(skill_level)
     response = await llm_client.generate(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
@@ -240,6 +254,7 @@ async def _fill_practice(
     lesson_title: str,
     session_id: str,
     lesson_id: str,
+    skill_level: int | None = None,
 ) -> None:
     """Fill a practice_task block with a single LLM call."""
     event_bus.emit(
@@ -251,7 +266,7 @@ async def _fill_practice(
         ),
     )
 
-    user_prompt = build_practice_prompt(heading, context, lesson_title)
+    user_prompt = build_practice_prompt(heading, context, lesson_title) + _skill_context(skill_level)
     response = await llm_client.generate(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
@@ -293,6 +308,7 @@ async def _fill_callout(
     lesson_title: str,
     session_id: str,
     lesson_id: str,
+    skill_level: int | None = None,
 ) -> None:
     """Fill a callout block."""
     # If the scaffolder already provided good content, keep it
@@ -318,7 +334,7 @@ async def _fill_callout(
         ),
     )
 
-    user_prompt = build_callout_prompt(heading, context, lesson_title)
+    user_prompt = build_callout_prompt(heading, context, lesson_title) + _skill_context(skill_level)
     response = await llm_client.generate(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,

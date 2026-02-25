@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Block, PracticeTaskPayload, CodeTest } from "../../types/blocks";
+import { useSessionStore } from "../../store/sessionStore";
 
 interface PracticeTaskBlockProps {
   block: Block;
@@ -38,12 +39,15 @@ export function PracticeTaskBlock({ block }: PracticeTaskBlockProps) {
   const hasCode = Boolean(payload.code_snippet && payload.tests?.length);
   const [code, setCode] = useState(payload.code_snippet ?? "");
   const [testResults, setTestResults] = useState<TestResult[] | null>(null);
+  const recordAnswer = useSessionStore((s) => s.recordAnswer);
 
   const handleRun = useCallback(() => {
     if (payload.tests) {
-      setTestResults(runTests(code, payload.tests));
+      const results = runTests(code, payload.tests);
+      setTestResults(results);
+      recordAnswer(results.every((r) => r.passed));
     }
-  }, [code, payload.tests]);
+  }, [code, payload.tests, recordAnswer]);
 
   if (!payload.description) return null;
 

@@ -11,7 +11,13 @@ from sse_starlette.sse import EventSourceResponse
 from app.db.engine import get_db
 from app.models.session import Session as SessionModel
 from app.pipeline.orchestrator import run_pipeline
+from pydantic import BaseModel
+
 from app.schemas.session import SessionCreate, SessionResponse
+
+
+class GenerateRequest(BaseModel):
+    skill_level: int | None = None
 from app.sse.encoder import encode_sse_event
 from app.sse.event_bus import event_bus
 
@@ -75,6 +81,7 @@ async def session_events(
 async def trigger_generation(
     session_id: str,
     background_tasks: BackgroundTasks,
+    body: GenerateRequest | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Trigger pipeline generation for an existing session."""
@@ -82,5 +89,6 @@ async def trigger_generation(
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    background_tasks.add_task(run_pipeline, session_id, session.user_request)
+    skill_level = body.skill_level if body else None
+    background_tasks.add_task(run_pipeline, session_id, session.user_request, skill_level)
     return {"status": "started", "session_id": session_id}

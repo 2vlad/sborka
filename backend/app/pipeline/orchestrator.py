@@ -36,7 +36,7 @@ def _find_first_lesson(nodes: list[PlanNode]) -> PlanNode | None:
     return None
 
 
-async def run_pipeline(session_id: str, user_request: str) -> None:
+async def run_pipeline(session_id: str, user_request: str, skill_level: int | None = None) -> None:
     """Execute the full generation pipeline for a session.
 
     Steps:
@@ -126,6 +126,7 @@ async def run_pipeline(session_id: str, user_request: str) -> None:
         blocks = await scaffold_lesson(
             lesson_title=lesson_title,
             lesson_context=user_request,
+            skill_level=skill_level,
         )
 
         # Save lesson to DB
@@ -167,6 +168,7 @@ async def run_pipeline(session_id: str, user_request: str) -> None:
                 lesson_title=lesson_title,
                 session_id=session_id,
                 lesson_id=lesson_id,
+                skill_level=skill_level,
             )
 
         # Update lesson in DB with filled blocks
