@@ -89,9 +89,19 @@ async def _real_generate_image(
     if not images:
         raise ValueError("No images returned in response")
 
-    image_b64 = images[0]
+    raw = images[0]
 
-    # Detect format — Gemini typically returns PNG
+    # OpenRouter returns {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+    if isinstance(raw, dict):
+        data_url = raw.get("image_url", {}).get("url", "")
+        # Strip data URI prefix: "data:image/png;base64,..."
+        if ";base64," in data_url:
+            image_b64 = data_url.split(";base64,", 1)[1]
+        else:
+            raise ValueError("Unexpected image_url format")
+    else:
+        image_b64 = raw
+
     ext = "png"
 
     # Save to disk

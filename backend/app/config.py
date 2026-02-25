@@ -6,8 +6,8 @@ class Settings(BaseSettings):
 
     OPENROUTER_API_KEY: str = ""
     DATABASE_URL: str = "sqlite+aiosqlite:///./sborka.db"
-    LLM_MODEL: str = "google/gemini-2.0-flash-001"
-    IMAGE_MODEL: str = "google/gemini-2.5-flash-image-preview"
+    LLM_MODEL: str = "anthropic/claude-sonnet-4.6"
+    IMAGE_MODEL: str = "google/gemini-3-pro-image-preview"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
 
     model_config = {

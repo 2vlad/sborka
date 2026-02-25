@@ -13,7 +13,7 @@ export function StatusBar() {
   return (
     <header className="flex items-center gap-4 border-b border-gray-200 bg-white px-6 py-3">
       <a href="/" className="flex items-center gap-2 text-lg font-bold text-black">
-        <img src="/logo.svg" alt="" className="h-6 w-6" />
+        <img src="/logo.jpg" alt="Sborka" className="h-6 w-6" />
         Sborka
       </a>
 

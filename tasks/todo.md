@@ -62,6 +62,14 @@
 - [x] SSE race condition (triggerGenerate called after SSE connected)
 - [x] Missing greenlet dependency for async SQLAlchemy
 
+## Practice Task: Code Snippet + Auto-tests
+- [x] Backend schema: CodeTest model, PracticeTaskPayload with code_snippet + tests
+- [x] Frontend types: CodeTest interface, updated PracticeTaskPayload
+- [x] Prompt: build_practice_prompt generates code_snippet + tests for coding topics
+- [x] Frontend UI: code editor (textarea) + test runner (new Function) + results display
+- [x] E2E verified: LLM generates code_snippet + tests for JS lessons (2/2 practice blocks)
+- [x] Non-coding lessons: code_snippet=null, tests=null — renders as before
+
 ## Verification
 - [x] Backend: 32/32 tests pass
 - [x] Frontend: vite build succeeds (0 errors)
