@@ -1,15 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createSession } from "../api/client";
 import { useSessionStore } from "../store/sessionStore";
+
+const EXAMPLES = [
+  "хочу разобраться в модулях JavaScript",
+  "как работает React под капотом",
+  "основы машинного обучения с нуля",
+  "разобраться в SQL и проектировании баз данных",
+  "научиться писать чистый код на Python",
+];
 
 export default function LandingPage() {
   const [request, setRequest] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exampleIdx, setExampleIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const reset = useSessionStore((s) => s.reset);
   const setSessionId = useSessionStore((s) => s.setSessionId);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (request) return;
+    intervalRef.current = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setExampleIdx((i) => (i + 1) % EXAMPLES.length);
+        setFade(true);
+      }, 300);
+    }, 3000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [request]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,25 +63,33 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4">
       <div className="w-full max-w-2xl text-center">
         <div className="mb-2 flex items-center justify-center gap-3">
-          <img src="/logo.svg" alt="" className="h-12 w-12" />
+          <img src="/logo.jpg" alt="Sborka" className="h-12 w-12" />
           <h1 className="text-5xl font-bold tracking-tight text-black">
             Sborka
           </h1>
         </div>
         <p className="mb-10 text-lg text-gray-500">
-          Генеративная образовательная платформа
+          Генератор образования
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <textarea
-            value={request}
-            onChange={(e) => setRequest(e.target.value)}
-            placeholder="Например: хочу разобраться в модулях JavaScript"
-            rows={4}
-            className="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 px-5 py-4 text-base text-gray-900 shadow-sm outline-none transition-all placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-2 focus:ring-gray-200"
-            disabled={isSubmitting}
-            aria-label="Опишите, что хотите изучить"
-          />
+          <div className="relative">
+            <textarea
+              value={request}
+              onChange={(e) => setRequest(e.target.value)}
+              rows={4}
+              className="relative z-10 w-full resize-none rounded-xl border border-gray-300 bg-transparent px-5 py-4 text-base text-gray-900 shadow-sm outline-none transition-all focus:border-gray-900 focus:bg-white focus:ring-2 focus:ring-gray-200"
+              disabled={isSubmitting}
+              aria-label="Опишите, что хотите изучить"
+            />
+            {!request && (
+              <span
+                className={`pointer-events-none absolute left-5 top-4 text-base text-gray-400 transition-opacity duration-300 ${fade ? "opacity-100" : "opacity-0"}`}
+              >
+                {EXAMPLES[exampleIdx]}
+              </span>
+            )}
+          </div>
 
           <button
             type="submit"
@@ -99,7 +132,15 @@ export default function LandingPage() {
         )}
 
         <p className="mt-6 text-xs text-gray-400">
-          Не вводите персональные данные
+          Не вводите персональные данные · Изображение:{" "}
+          <a
+            href="https://marathonstudio.cz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-gray-600"
+          >
+            Marathon Studio
+          </a>
         </p>
       </div>
     </div>
