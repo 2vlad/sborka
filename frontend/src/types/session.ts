@@ -32,3 +32,14 @@ export interface SessionState {
   lessons: Record<string, Block[]>;
   errors: string[];
 }
+
+export interface SessionSnapshot {
+  session_id: string;
+  status: string;
+  classification: Classification | null;
+  outline: PlanNode[] | null;
+  lessons: Record<
+    string,
+    { title: string; status: string; blocks: Block[] }
+  >;
+}

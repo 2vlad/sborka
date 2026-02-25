@@ -18,7 +18,7 @@ function findLessonNode(
 }
 
 export function LessonView() {
-  const { outline, currentLessonId, currentBlocks } = useSession();
+  const { outline, currentLessonId, currentBlocks, status } = useSession();
 
   const lessonNode = useMemo(() => {
     if (!outline || !currentLessonId) return null;
@@ -34,9 +34,16 @@ export function LessonView() {
   }
 
   if (currentBlocks.length === 0) {
+    if (status === "done") {
+      return (
+        <div className="py-20 text-center text-gray-400">
+          <p className="text-lg">Этот урок ещё не сгенерирован</p>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-gray-800" />
+        <div className="mb-4 h-8 w-8 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
         <p className="text-gray-500">Загружаем содержимое урока...</p>
       </div>
     );

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { triggerGenerate } from "../api/client";
+import { fetchSession, triggerGenerate } from "../api/client";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { LessonView } from "../components/LessonView";
 import { Sidebar } from "../components/Sidebar";
@@ -13,9 +13,11 @@ export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const storeSessionId = useSessionStore((s) => s.sessionId);
   const setSessionId = useSessionStore((s) => s.setSessionId);
+  const hydrateFromSnapshot = useSessionStore((s) => s.hydrateFromSnapshot);
   const { status, outline } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const generationTriggered = useRef(false);
+  const hydrationDone = useRef(false);
 
   // Set sessionId in store if navigated directly
   useEffect(() => {
@@ -23,6 +25,24 @@ export default function SessionPage() {
       setSessionId(sessionId);
     }
   }, [sessionId, storeSessionId, setSessionId]);
+
+  // Hydrate from DB snapshot on mount
+  useEffect(() => {
+    if (!sessionId || hydrationDone.current) return;
+    hydrationDone.current = true;
+
+    fetchSession(sessionId).then((snapshot) => {
+      if (!snapshot) return;
+      // If session is already done or errored, hydrate from DB — no need to regenerate
+      if (snapshot.status === "done" || snapshot.status === "error") {
+        hydrateFromSnapshot(snapshot);
+        generationTriggered.current = true; // prevent triggerGenerate
+      } else if (snapshot.status === "generating") {
+        // Generation in progress — hydrate what we have, SSE will pick up the rest
+        hydrateFromSnapshot(snapshot);
+      }
+    });
+  }, [sessionId, hydrateFromSnapshot]);
 
   // Trigger generation once SSE is connected
   const handleSSEConnected = useCallback(() => {
@@ -91,13 +111,13 @@ export default function SessionPage() {
             <Breadcrumbs />
             {status === "classifying" && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-gray-800" />
+                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
                 <p className="text-lg text-gray-500">Анализируем ваш запрос...</p>
               </div>
             )}
             {status === "scaffolding" && !outline && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-gray-800" />
+                <div className="mb-4 h-10 w-10 animate-spin-ease rounded-full border-4 border-gray-200 border-t-gray-800" />
                 <p className="text-lg text-gray-500">Строим структуру программы...</p>
               </div>
             )}

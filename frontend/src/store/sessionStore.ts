@@ -4,6 +4,7 @@ import type { SSEEvent } from "../types/events";
 import type {
   Classification,
   PlanNode,
+  SessionSnapshot,
   SessionStatus,
 } from "../types/session";
 
@@ -22,6 +23,7 @@ interface SessionStore {
 
   // Actions
   handleEvent: (event: SSEEvent) => void;
+  hydrateFromSnapshot: (snapshot: SessionSnapshot) => void;
   reset: () => void;
   setCurrentLesson: (lessonId: string) => void;
   setSessionId: (sessionId: string) => void;
@@ -249,6 +251,39 @@ export const useSessionStore = create<SessionStore>((set) => ({
         set({ status: "done" });
         break;
     }
+  },
+
+  hydrateFromSnapshot: (snapshot: SessionSnapshot) => {
+    const dbStatusToFrontend: Record<string, SessionStatus> = {
+      created: "idle",
+      classifying: "classifying",
+      scaffolding: "scaffolding",
+      generating: "generating",
+      done: "done",
+      error: "error",
+    };
+
+    const lessons: Record<string, Block[]> = {};
+    let firstLessonId: string | null = null;
+    for (const [lessonId, lesson] of Object.entries(snapshot.lessons)) {
+      lessons[lessonId] = lesson.blocks;
+      if (!firstLessonId && lesson.blocks.length > 0) {
+        firstLessonId = lessonId;
+      }
+    }
+    // If no lesson has blocks, pick the first lesson key
+    if (!firstLessonId) {
+      const keys = Object.keys(snapshot.lessons);
+      if (keys.length > 0) firstLessonId = keys[0];
+    }
+
+    set({
+      status: dbStatusToFrontend[snapshot.status] ?? "idle",
+      classification: snapshot.classification,
+      outline: snapshot.outline,
+      lessons,
+      currentLessonId: firstLessonId,
+    });
   },
 
   reset: () => set(initialState),

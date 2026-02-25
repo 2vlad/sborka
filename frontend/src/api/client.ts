@@ -11,6 +11,14 @@ export async function createSession(userRequest: string): Promise<string> {
   return data.session_id;
 }
 
+export async function fetchSession(
+  sessionId: string,
+): Promise<import("../types/session").SessionSnapshot | null> {
+  const res = await fetch(`/api/sessions/${sessionId}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function triggerGenerate(sessionId: string, skillLevel?: number): Promise<void> {
   const res = await fetch(`/api/sessions/${sessionId}/generate`, {
     method: "POST",
