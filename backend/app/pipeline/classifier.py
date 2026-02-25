@@ -54,6 +54,7 @@ async def classify(user_request: str) -> tuple[ClassificationResult, list[PlanNo
         system=CLASSIFIER_SYSTEM_PROMPT,
         user=user_request,
         max_tokens=4096,
+        label="classify",
     )
 
     # Strip markdown code fences if present

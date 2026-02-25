@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 import uuid
 
 from app.llm.client import llm_client
@@ -79,6 +80,7 @@ async def fill_block(
     context = _build_context(blocks, block_index)
     heading = _find_heading_for_block(blocks, block_index)
 
+    t0 = time.perf_counter()
     try:
         if block.type == "heading":
             await _fill_heading(block, session_id, lesson_id)
@@ -127,6 +129,19 @@ async def fill_block(
                 block_id=block.id,
             ),
         )
+    finally:
+        duration = time.perf_counter() - t0
+        logger.info(
+            "Block filled",
+            extra={
+                "event": "block_fill",
+                "block_id": block.id,
+                "block_type": block.type,
+                "block_index": block_index,
+                "block_status": block.status,
+                "duration_s": round(duration, 2),
+            },
+        )
 
 
 async def _fill_heading(block: Block, session_id: str, lesson_id: str) -> None:
@@ -169,6 +184,7 @@ async def _fill_markdown(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
         max_tokens=2048,
+        label="fill_markdown",
     ):
         full_text += delta
         event_bus.emit(
@@ -218,6 +234,7 @@ async def _fill_quiz(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
         max_tokens=2048,
+        label="fill_quiz",
     )
 
     # Parse JSON from response
@@ -272,6 +289,7 @@ async def _fill_practice(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
         max_tokens=2048,
+        label="fill_practice",
     )
 
     # Parse JSON from response
@@ -340,6 +358,7 @@ async def _fill_callout(
         system=FILLER_SYSTEM_PROMPT,
         user=user_prompt,
         max_tokens=512,
+        label="fill_callout",
     )
 
     block.payload = {
@@ -377,6 +396,7 @@ async def _fill_image(
                 system=FILLER_SYSTEM_PROMPT,
                 user=user_prompt,
                 max_tokens=256,
+                label="fill_image_prompt",
             )
             image_prompt = image_prompt.strip().strip('"').strip("'")
             logger.info("Generated content-aware image prompt for block %s", block.id)

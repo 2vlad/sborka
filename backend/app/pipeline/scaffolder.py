@@ -51,6 +51,7 @@ async def scaffold_lesson(lesson_title: str, lesson_context: str, skill_level: i
         system=SCAFFOLDER_SYSTEM_PROMPT,
         user=user_prompt,
         max_tokens=8192,
+        label="scaffold",
     )
 
     # Strip markdown code fences if present

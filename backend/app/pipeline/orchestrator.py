@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import traceback
 import uuid
 from datetime import UTC, datetime
@@ -50,6 +51,7 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
     5. Emit done
     """
     session_id_var.set(session_id)
+    pipeline_t0 = time.perf_counter()
 
     try:
         # 1. Session created
@@ -60,7 +62,16 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
 
         # 2. Classify
         logger.info("Classifying request for session %s", session_id)
+        stage_t0 = time.perf_counter()
         classification, outline = await classify(user_request)
+        logger.info(
+            "Pipeline stage completed",
+            extra={
+                "event": "pipeline_stage",
+                "stage": "classify",
+                "duration_s": round(time.perf_counter() - stage_t0, 2),
+            },
+        )
 
         # Update session in DB
         async with async_session_factory() as db:
@@ -128,10 +139,20 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
         )
 
         logger.info("Scaffolding lesson '%s' for session %s", lesson_title, session_id)
+        stage_t0 = time.perf_counter()
         blocks = await scaffold_lesson(
             lesson_title=lesson_title,
             lesson_context=user_request,
             skill_level=skill_level,
+        )
+        logger.info(
+            "Pipeline stage completed",
+            extra={
+                "event": "pipeline_stage",
+                "stage": "scaffold",
+                "duration_s": round(time.perf_counter() - stage_t0, 2),
+                "block_count": len(blocks),
+            },
         )
 
         # Save lesson to DB (upsert to handle retries)
@@ -173,6 +194,7 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
             lesson_id,
             session_id,
         )
+        stage_t0 = time.perf_counter()
         for idx, block in enumerate(blocks):
             await fill_block(
                 block=block,
@@ -183,6 +205,15 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
                 lesson_id=lesson_id,
                 skill_level=skill_level,
             )
+        logger.info(
+            "Pipeline stage completed",
+            extra={
+                "event": "pipeline_stage",
+                "stage": "fill_all",
+                "duration_s": round(time.perf_counter() - stage_t0, 2),
+                "block_count": len(blocks),
+            },
+        )
 
         # Update lesson in DB with filled blocks
         async with async_session_factory() as db:
@@ -215,10 +246,23 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
 
         # 5. Done
         event_bus.emit(session_id, DoneEvent(session_id=session_id))
-        logger.info("Pipeline completed for session %s", session_id)
+        logger.info(
+            "Pipeline completed",
+            extra={
+                "event": "pipeline_complete",
+                "duration_s": round(time.perf_counter() - pipeline_t0, 2),
+            },
+        )
 
     except Exception as exc:
-        logger.exception("Pipeline error for session %s", session_id)
+        logger.exception(
+            "Pipeline error for session %s",
+            session_id,
+            extra={
+                "event": "pipeline_error",
+                "duration_s": round(time.perf_counter() - pipeline_t0, 2),
+            },
+        )
 
         try:
             import sentry_sdk

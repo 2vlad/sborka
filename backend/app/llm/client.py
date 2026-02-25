@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import uuid
 from collections.abc import AsyncGenerator
 
@@ -71,12 +72,14 @@ class LLMClient:
         system: str,
         user: str,
         max_tokens: int = 4096,
+        label: str | None = None,
     ) -> str:
         """Non-streaming LLM call. Returns the full text response."""
         if self._client is None:
             logger.warning("LLM client running in mock mode (no API key)")
             return self._mock_response(system, user)
 
+        t0 = time.perf_counter()
         response = await self._client.chat.completions.create(
             model=self._model,
             max_tokens=max_tokens,
@@ -85,6 +88,29 @@ class LLMClient:
                 {"role": "user", "content": user},
             ],
         )
+        duration = time.perf_counter() - t0
+
+        usage = response.usage
+        prompt_tokens = usage.prompt_tokens if usage else None
+        completion_tokens = usage.completion_tokens if usage else None
+        total_tokens = usage.total_tokens if usage else None
+
+        logger.info(
+            "LLM call completed",
+            extra={
+                "event": "llm_call",
+                "label": label,
+                "model": self._model,
+                "stream": False,
+                "duration_s": round(duration, 2),
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+            },
+        )
+        if duration > 30:
+            logger.warning("LLM call slow: %.1fs (label=%s)", duration, label)
+
         return response.choices[0].message.content or ""
 
     async def generate_stream(
@@ -92,6 +118,7 @@ class LLMClient:
         system: str,
         user: str,
         max_tokens: int = 4096,
+        label: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Streaming LLM call. Yields text deltas as they arrive."""
         if self._client is None:
@@ -102,6 +129,9 @@ class LLMClient:
                 yield mock[i : i + chunk_size]
             return
 
+        t0 = time.perf_counter()
+        usage_data: dict | None = None
+
         stream = await self._client.chat.completions.create(
             model=self._model,
             max_tokens=max_tokens,
@@ -110,11 +140,35 @@ class LLMClient:
                 {"role": "user", "content": user},
             ],
             stream=True,
+            stream_options={"include_usage": True},
         )
         async for chunk in stream:
+            if chunk.usage is not None:
+                usage_data = {
+                    "prompt_tokens": chunk.usage.prompt_tokens,
+                    "completion_tokens": chunk.usage.completion_tokens,
+                    "total_tokens": chunk.usage.total_tokens,
+                }
             delta = chunk.choices[0].delta.content if chunk.choices else None
             if delta:
                 yield delta
+
+        duration = time.perf_counter() - t0
+        logger.info(
+            "LLM call completed",
+            extra={
+                "event": "llm_call",
+                "label": label,
+                "model": self._model,
+                "stream": True,
+                "duration_s": round(duration, 2),
+                "prompt_tokens": usage_data["prompt_tokens"] if usage_data else None,
+                "completion_tokens": usage_data["completion_tokens"] if usage_data else None,
+                "total_tokens": usage_data["total_tokens"] if usage_data else None,
+            },
+        )
+        if duration > 30:
+            logger.warning("LLM call slow: %.1fs (label=%s)", duration, label)
 
     def _mock_response(self, system: str, user: str) -> str:
         """Return a mock response based on prompt hints."""

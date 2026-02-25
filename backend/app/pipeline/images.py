@@ -4,6 +4,7 @@ import asyncio
 import base64
 import logging
 import random
+import time
 from pathlib import Path
 
 from openai import AsyncOpenAI
@@ -76,11 +77,13 @@ async def _real_generate_image(
 
     logger.info("Requesting image generation for asset %s via %s", asset_id, settings.IMAGE_MODEL)
 
+    t0 = time.perf_counter()
     response = await client.chat.completions.create(
         model=settings.IMAGE_MODEL,
         messages=[{"role": "user", "content": prompt}],
         extra_body={"modalities": ["image", "text"]},
     )
+    duration = time.perf_counter() - t0
 
     # Extract image from response
     message = response.choices[0].message
@@ -111,6 +114,7 @@ async def _real_generate_image(
     filepath.write_bytes(base64.b64decode(image_b64))
 
     url = f"/generated_images/{filename}"
+    size_bytes = filepath.stat().st_size
 
     event_bus.emit(
         session_id,
@@ -121,7 +125,19 @@ async def _real_generate_image(
         ),
     )
 
-    logger.info("Image ready for asset %s: %s (%d bytes)", asset_id, url, filepath.stat().st_size)
+    logger.info(
+        "Image generation completed",
+        extra={
+            "event": "image_generation",
+            "asset_id": asset_id,
+            "model": settings.IMAGE_MODEL,
+            "duration_s": round(duration, 2),
+            "size_bytes": size_bytes,
+            "mock": False,
+        },
+    )
+    if duration > 60:
+        logger.warning("Image generation slow: %.1fs (asset=%s)", duration, asset_id)
 
 
 async def _mock_generate_image(
@@ -142,6 +158,7 @@ async def _mock_generate_image(
         delay,
     )
 
+    t0 = time.perf_counter()
     await asyncio.sleep(delay)
 
     width, height = _aspect_to_dimensions(aspect_ratio)
@@ -159,7 +176,16 @@ async def _mock_generate_image(
         ),
     )
 
-    logger.info("Mock image ready for asset %s: %s", asset_id, url)
+    duration = time.perf_counter() - t0
+    logger.info(
+        "Image generation completed",
+        extra={
+            "event": "image_generation",
+            "asset_id": asset_id,
+            "duration_s": round(duration, 2),
+            "mock": True,
+        },
+    )
 
 
 def _short_label(prompt: str) -> str:
