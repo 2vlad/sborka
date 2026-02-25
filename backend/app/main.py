@@ -35,7 +35,13 @@ logger = logging.getLogger(__name__)
 if settings.SENTRY_DSN:
     import sentry_sdk
 
-    sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.2)
+    from sentry_sdk.integrations.openai import OpenAIIntegration
+
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        traces_sample_rate=0.2,
+        disabled_integrations=[OpenAIIntegration()],
+    )
     logger.info("Sentry initialized")
 
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
