@@ -5,6 +5,7 @@ import { Breadcrumbs } from "../components/Breadcrumbs";
 import { LessonView } from "../components/LessonView";
 import { Sidebar } from "../components/Sidebar";
 import { StatusBar } from "../components/StatusBar";
+import { useResizable } from "../hooks/useResizable";
 import { useSession } from "../hooks/useSession";
 import { useSSE } from "../hooks/useSSE";
 import { useSessionStore } from "../store/sessionStore";
@@ -16,6 +17,7 @@ export default function SessionPage() {
   const hydrateFromSnapshot = useSessionStore((s) => s.hydrateFromSnapshot);
   const { status, outline } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebar = useResizable();
   const generationTriggered = useRef(false);
   const hydrationDone = useRef(false);
 
@@ -88,13 +90,30 @@ export default function SessionPage() {
 
         {/* Sidebar */}
         {outline && (
-          <aside
-            className={`${
-              sidebarOpen ? "translate-x-0" : "-translate-x-full"
-            } fixed inset-y-0 left-0 z-40 w-72 transform overflow-y-auto border-r border-border bg-surface-alt/50 pt-14 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:pt-0`}
-          >
-            <Sidebar onNavigate={() => setSidebarOpen(false)} />
-          </aside>
+          <>
+            <aside
+              className={`${
+                sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              } fixed inset-y-0 left-0 z-40 max-w-[80vw] flex-shrink-0 transform overflow-y-auto border-r border-border bg-surface-alt/50 pt-14 transition-transform duration-200 ease-in-out md:relative md:max-w-none md:translate-x-0 md:pt-0`}
+              style={{ width: sidebar.width }}
+            >
+              <Sidebar onNavigate={() => setSidebarOpen(false)} />
+            </aside>
+
+            {/* Resize handle — desktop only */}
+            <div
+              className="hidden md:flex"
+              onPointerDown={sidebar.handlePointerDown}
+              onPointerMove={sidebar.handlePointerMove}
+              onPointerUp={sidebar.handlePointerUp}
+              onDoubleClick={sidebar.resetWidth}
+              style={{ touchAction: "none" }}
+            >
+              <div className="group flex w-1.5 cursor-col-resize items-center justify-center hover:bg-border/50 active:bg-border">
+                <div className="h-8 w-0.5 rounded-full bg-border transition-colors group-hover:bg-text-placeholder group-active:bg-text-secondary" />
+              </div>
+            </div>
+          </>
         )}
 
         {/* Backdrop for mobile sidebar */}
