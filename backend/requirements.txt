@@ -5,6 +5,7 @@ pydantic>=2.0
 pydantic-settings>=2.0
 sqlalchemy>=2.0
 aiosqlite>=0.20
+asyncpg>=0.30
 greenlet>=3.0
 sse-starlette>=2.0
 python-dotenv>=1.0
