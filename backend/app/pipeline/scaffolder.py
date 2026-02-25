@@ -69,7 +69,35 @@ async def scaffold_lesson(lesson_title: str, lesson_context: str) -> list[Block]
         logger.error("Scaffolder returned non-array: %s", type(raw_blocks))
         return _minimal_scaffold(lesson_title)
 
-    return _parse_blocks(raw_blocks)
+    blocks = _parse_blocks(raw_blocks)
+    return _inject_hero_image(blocks, lesson_title)
+
+
+def _inject_hero_image(blocks: list[Block], lesson_title: str) -> list[Block]:
+    """Insert a hero image block right after the first heading."""
+    hero = Block(
+        id=str(uuid.uuid4()),
+        type="image",
+        status="planned",
+        payload={
+            "alt": lesson_title,
+            "caption": "",
+            "aspect_ratio": "21:9",
+            "image_prompt": (
+                f"Hero illustration for an educational lesson titled "
+                f'"{lesson_title}". Modern, clean, minimalist style. '
+                f"No text on the image."
+            ),
+        },
+    )
+    # Insert after the first heading (index 1), or at the start if no heading
+    insert_at = 1
+    for i, b in enumerate(blocks):
+        if b.type == "heading":
+            insert_at = i + 1
+            break
+    blocks.insert(insert_at, hero)
+    return blocks
 
 
 def _minimal_scaffold(lesson_title: str) -> list[Block]:
