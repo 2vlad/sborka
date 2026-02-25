@@ -129,19 +129,27 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
             skill_level=skill_level,
         )
 
-        # Save lesson to DB
+        # Save lesson to DB (upsert to handle retries)
         async with async_session_factory() as db:
-            lesson_record = LessonModel(
-                id=lesson_id,
-                session_id=session_id,
-                title=lesson_title,
-                blocks_json=json.dumps(
+            existing = await db.get(LessonModel, lesson_id)
+            if existing:
+                existing.title = lesson_title
+                existing.blocks_json = json.dumps(
                     [b.model_dump() for b in blocks],
                     ensure_ascii=False,
-                ),
-                status="scaffolded",
-            )
-            db.add(lesson_record)
+                )
+                existing.status = "scaffolded"
+            else:
+                db.add(LessonModel(
+                    id=lesson_id,
+                    session_id=session_id,
+                    title=lesson_title,
+                    blocks_json=json.dumps(
+                        [b.model_dump() for b in blocks],
+                        ensure_ascii=False,
+                    ),
+                    status="scaffolded",
+                ))
             await db.commit()
 
         event_bus.emit(
