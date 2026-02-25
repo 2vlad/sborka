@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "anthropic/claude-sonnet-4.6"
     IMAGE_MODEL: str = "google/gemini-3-pro-image-preview"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    SENTRY_DSN: str = ""
 
     model_config = {
         "env_file": ".env",

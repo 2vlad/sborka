@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import json
 import logging
+import traceback
 import uuid
+from datetime import UTC, datetime
 
 from app.db.engine import async_session_factory
+from app.logging_context import session_id_var
 from app.models.lesson import Lesson as LessonModel
 from app.models.session import Session as SessionModel
 from app.pipeline.classifier import classify
@@ -46,6 +49,8 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
     4. Fill each block sequentially
     5. Emit done
     """
+    session_id_var.set(session_id)
+
     try:
         # 1. Session created
         event_bus.emit(
@@ -205,14 +210,23 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
             session_record = await db.get(SessionModel, session_id)
             if session_record:
                 session_record.status = "done"
+                session_record.completed_at = datetime.now(UTC)
                 await db.commit()
 
         # 5. Done
         event_bus.emit(session_id, DoneEvent(session_id=session_id))
         logger.info("Pipeline completed for session %s", session_id)
 
-    except Exception:
+    except Exception as exc:
         logger.exception("Pipeline error for session %s", session_id)
+
+        try:
+            import sentry_sdk
+
+            sentry_sdk.set_tag("session_id", session_id)
+        except Exception:
+            pass
+
         event_bus.emit(
             session_id,
             ErrorEvent(
@@ -223,12 +237,17 @@ async def run_pipeline(session_id: str, user_request: str, skill_level: int | No
         )
         event_bus.emit(session_id, DoneEvent(session_id=session_id))
 
-        # Update session status to error
+        # Persist error details
+        error_msg = f"{type(exc).__name__}: {exc}"[:1000]
+        error_tb = traceback.format_exc()[-4000:]
         try:
             async with async_session_factory() as db:
                 session_record = await db.get(SessionModel, session_id)
                 if session_record:
                     session_record.status = "error"
+                    session_record.completed_at = datetime.now(UTC)
+                    session_record.error_message = error_msg
+                    session_record.error_trace = error_tb
                     await db.commit()
         except Exception:
             logger.exception("Failed to update session status to error")

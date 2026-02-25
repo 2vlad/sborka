@@ -17,3 +17,12 @@ class Session(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    error_message: Mapped[str | None] = mapped_column(
+        String(1000), nullable=True, default=None
+    )
+    error_trace: Mapped[str | None] = mapped_column(
+        String(4000), nullable=True, default=None
+    )

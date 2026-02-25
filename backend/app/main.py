@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -8,15 +9,34 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pythonjsonlogger.json import JsonFormatter
 
 from app.api.sessions import router as sessions_router
+from app.config import settings
 from app.db.engine import init_db
+from app.logging_context import SessionContextFilter
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+# --- JSON structured logging ---
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(
+    JsonFormatter(
+        fmt="%(asctime)s %(levelname)s %(name)s %(message)s %(session_id)s",
+        rename_fields={"asctime": "timestamp", "levelname": "level"},
+    )
 )
+_handler.addFilter(SessionContextFilter())
+logging.root.handlers.clear()
+logging.root.addHandler(_handler)
+logging.root.setLevel(logging.INFO)
+
 logger = logging.getLogger(__name__)
+
+# --- Sentry ---
+if settings.SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.2)
+    logger.info("Sentry initialized")
 
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 
