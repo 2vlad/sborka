@@ -53,7 +53,7 @@ async def classify(user_request: str) -> tuple[ClassificationResult, list[PlanNo
     response = await llm_client.generate(
         system=CLASSIFIER_SYSTEM_PROMPT,
         user=user_request,
-        max_tokens=4096,
+        max_tokens=16384,
         label="classify",
     )
 

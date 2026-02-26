@@ -90,6 +90,7 @@ class LLMClient:
         )
         duration = time.perf_counter() - t0
 
+        finish_reason = response.choices[0].finish_reason if response.choices else None
         usage = response.usage
         prompt_tokens = usage.prompt_tokens if usage else None
         completion_tokens = usage.completion_tokens if usage else None
@@ -106,8 +107,13 @@ class LLMClient:
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
                 "total_tokens": total_tokens,
+                "finish_reason": finish_reason,
             },
         )
+        if finish_reason == "length":
+            logger.warning(
+                "LLM response truncated (max_tokens reached), label=%s", label,
+            )
         if duration > 30:
             logger.warning("LLM call slow: %.1fs (label=%s)", duration, label)
 
